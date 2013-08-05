@@ -1,72 +1,49 @@
 #!/bin/bash
 
-SELLO=$1
-DESTINO=$2
-ORIGEN=$3
-
 RUTA=`dirname $0`
 
-if [ -z "$*" ]; then
+IFS="
+"
+
+if [ $# -lt 3 ]; then
 	cat $RUTA/usage
 	exit 1
 fi
 
-if [ ! -f "$SELLO" ]; then
-	echo "Archivo '$SELLO' no existe"
+SELLO="$1"
+
+if [ -z "`file $SELLO | grep PNG`" ]; then
+	echo "'$SELLO' no es una imagen PNG"
 	cat $RUTA/usage
 	exit 2
 fi
 
-#echo $ORIGEN
-#if [ ! -d "$ORIGEN" ]; then
-#	echo "Carpeta '$ORIGEN' no existe"
-#	cat $RUTA/usage
-#	exit 3
-#fi
+argumentos=( "$@" )
+num=$#
+num=$(( num - 2 ))
 
-if [ ! -d "$DESTINO" ]; then
-	echo "Carpeta '$DESTINO' no existe"
+DESTINO=${argumentos[ $num + 1 ]}
+
+if [ ! -d "$DESTINO" ];then
+	echo "'$DESTINO' no es una carpeta"
 	cat $RUTA/usage
-	exit 4
+	exit 3
 fi
 
-if [ "$ORIGEN" -ef "$DESTINO" ]; then
-	echo "Las carpetas de origen y de destino son iguales"
-	cat $RUTA/usage
-	exit 5
-fi
-
-SELLOPDF=`mktemp /tmp/ppdf_XXXXX.pdf`
-convert $SELLO -transparent white -background none $SELLOPDF
-CARPETATMP=`mktemp -d /tmp/ppdf_XXXXX`
-PASSWD=`mktemp -u XXXXXXXXXXXXXXXXXXXXX`
-PREFIJO=`mktemp -u XXXXX`
-
-IFS="
-"
-shift
-shift
-ls -d "$@" 2> /dev/null | while read archivo
-do
-	if [ -d "$archivo" ]; then
-		break
-	fi
-	nm=`basename "$archivo"`
+for (( i = 1; i <= $num; i++ )); do
+	ORIGEN="${argumentos[$i]}"
+	nm=`basename "$ORIGEN"` 
 	extension="${nm##*.}"
-	nombresolo="${nm%.*}"
-	ndestino="${nombresolo}_wm.$extension"
-	echo "Estampando '$DESTINO/$ndestino"
-	pdftk "$archivo" stamp $SELLOPDF output "$CARPETATMP/$ndestino" 2> /dev/null
-	if [ $? -eq 0 ]; then
-		echo "Bloqueando '$DESTINO/$ndestino'"
-		pdftk "$CARPETATMP/$ndestino" output "$DESTINO/$ndestino" owner_pw $PASSWD 
+	if [ ! -f "$ORIGEN" ]; then
+		echo "'$ORIGEN' no existe o es un directorio"	
+	elif [ "$extension" != "pdf" ];then
+		echo "'$ORIGEN' no es un archivo PDF"
+	elif [ -z $(file "$ORIGEN" | grep "PDF document") ]; then
+		echo "'$ORIGEN' no es un archivo PDF"
 	else
-		echo "'$archivo' no es un archivo PDF o no existe"
+		$RUTA/./pr.sh "$SELLO" "$DESTINO" "$ORIGEN"
 	fi
 done
-
-rm $SELLOPDF
-rm -r $CARPETATMP
 
 
 

@@ -1,3 +1,3 @@
 
-uso: ppdf marca_de_agua.png carpeta_origen carpeta_destino
+uso: ppdf MARCA_DE_AGUA.png LISTA_ARCHIVOS_PDF CARPETA_DESTINO
 
