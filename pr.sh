@@ -17,13 +17,6 @@ if [ ! -f "$SELLO" ]; then
 	exit 2
 fi
 
-#echo $ORIGEN
-#if [ ! -d "$ORIGEN" ]; then
-#	echo "Carpeta '$ORIGEN' no existe"
-#	cat $RUTA/usage
-#	exit 3
-#fi
-
 if [ ! -d "$DESTINO" ]; then
 	echo "Carpeta '$DESTINO' no existe"
 	cat $RUTA/usage
